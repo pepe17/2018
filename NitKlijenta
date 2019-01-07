@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+
+namespace Server
+{
+    class NitKlijenta
+    {
+        private NetworkStream tok;
+        BinaryFormatter formater;
+
+        public NitKlijenta(NetworkStream tok)
+        {
+            this.tok = tok;
+            formater = new BinaryFormatter();
+
+            ThreadStart ts = obradi;
+            new Thread(ts).Start();
+        }
+
+        void obradi()
+        {
+            try
+            {
+                int operacija = 0;
+                while (operacija != (int)Operacije.Kraj)
+                {
+                    TransferKlasa transfer = formater.Deserialize(tok) as TransferKlasa;
+                    switch (transfer.Operacija)
+                    {
+                        case Operacije.DodajRec:
+                            Rec r = transfer.rec;
+
+                            if(Server.listaReci.Contains(r))
+                            { //ako sadrzi rec treba da dodamo novo znacenje ukoliko ne postoji
+                              // nama treba sada rec iz liste
+
+                                transfer.Poruka = "rec je izmenjena, dodata znacenja su: ";
+                                Rec stara = Server.listaReci[Server.listaReci.IndexOf(r)];
+                                
+                                foreach(Znacenje z in r.ListaZnacenja)
+                                {
+                                    if (!stara.ListaZnacenja.Contains(z))
+                                    {
+                                        stara.ListaZnacenja.Add(z);
+                                        transfer.Poruka += z.Text + ", ";
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                Server.listaReci.Add(r);
+                                transfer.Poruka = "Dodata je nova rec!";
+                            }
+
+
+
+                            formater.Serialize(tok, transfer);
+
+
+                            break;
+
+                        case Operacije.PronadjiRec:
+
+                            switch (transfer.jezik)
+                            {
+                                case "SRB":
+                                    Rec rp = new Rec();
+                                    rp.Text = transfer.pretraga;
+
+
+                                    if(Server.listaReci.Contains(rp))
+                                    {
+                                        transfer.rec = Server.listaReci[Server.listaReci.IndexOf(rp)];
+                                        transfer.Poruka = "Srpska rec je pronadjena!";
+                                    }
+                                    else
+                                    {
+                                        transfer.Poruka = "Rec ne postoji!";
+                                        transfer.rec = null;
+                                    }
+
+                                    break;
+
+
+                                case "ENG":
+                                    Znacenje zn = new Znacenje();
+                                    zn.Text = transfer.pretraga;
+
+                                    bool postoji = false;
+                                    foreach(Rec rec in Server.listaReci)
+                                    {
+                                        if(rec.ListaZnacenja.Contains(zn))
+                                        {
+                                            postoji = true;
+                                            transfer.rec = rec;
+                                            transfer.Poruka = "Nadjeno je znacenje!";
+                                            break; // za izlaz iz foreach-a
+                                        }
+                                    }
+
+                                    if (!postoji)
+                                    {
+                                        transfer.Poruka = "Nema znacenja!";
+                                        transfer.rec = null; //vrlo bitna stvar! da vratimo null
+                                    }
+
+                                    break;
+
+                                default:
+                                    transfer.Poruka = "Niste odabrali jezik!";
+                                    transfer.rec = null;
+                                    break;
+
+                             
+                            }
+
+                            formater.Serialize(tok, transfer); //vratimo korisniku celu informaciju
+                            break;
+                            
+                        case Operacije.Kraj:
+                            operacija = 1;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                //zbog gasenja konekcije, kada klijent sam hoce da prekine vezu, da ne bi zakucao citav server zbog toga
+
+            }
+        }
+    }
+}
