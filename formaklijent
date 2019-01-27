@@ -1,0 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Domen;
+
+namespace Klijent
+{
+    public partial class FormKlijent : Form
+    {
+        Komunikacija k;
+        private PoreskiInspektor p;
+        PoreskaPrijava prijava;
+
+        public FormKlijent()
+        {
+           
+        }
+
+        public FormKlijent(PoreskiInspektor p, Komunikacija k)
+        {
+            InitializeComponent();
+            this.p = p;
+            this.k = k;
+            this.Text = p.ToString();
+        }
+
+        private void FormKlijent_Load(object sender, EventArgs e)
+        {
+            cmbObveznik.DataSource = k.vratiSveObveznike();
+            cmbVrsta.DataSource = k.vratiSveVrste();
+            prijava = new PoreskaPrijava();
+            dataGridView1.DataSource = prijava.ListaStavki;
+        }
+
+        private void FormKlijent_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            k.kraj();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Vrsta v = cmbVrsta.SelectedItem as Vrsta;
+            if (v == null)
+            {
+                MessageBox.Show("Niste odabrali vrstu!");
+                return;
+            }
+
+            new UnosStavke(p, k, prijava,v).ShowDialog();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                StavkaPrijave sp = dataGridView1.CurrentRow.DataBoundItem as StavkaPrijave;
+                prijava.ListaStavki.Remove(sp);
+
+                int i = 1;
+                foreach (StavkaPrijave s in prijava.ListaStavki)
+                {
+                    s.RBr = i;
+                    i++;
+                }
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("Niste odabrali stavku!");
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            prijava.Inspektor = p;
+            prijava.Obveznik = cmbObveznik.SelectedItem as PoreskiObveznik;
+            if (prijava.Obveznik == null)
+            {
+                MessageBox.Show("Fali obveznik!");
+                return;
+            }
+
+            try
+            {
+                prijava.Godina = Convert.ToInt32(txtGod.Text);
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("Ne valja godina!");
+                return;
+            }
+
+
+            if (prijava.ListaStavki.Count < 1)
+            {
+                MessageBox.Show("Fale stavke!");
+                return;
+            }
+
+            if (k.sacuvajPrijavu(prijava))
+            {
+                MessageBox.Show("Sacuvana!");
+            }
+            else
+            {
+                MessageBox.Show("Nije sacuvana!");
+            }
+
+        }
+    }
+}
