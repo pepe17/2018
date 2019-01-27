@@ -1,0 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+
+namespace Klijent
+{
+    public class Komunikacija
+    {
+        TcpClient klijent;
+        BinaryFormatter formater;
+        NetworkStream tok;
+
+
+        public bool poveziSeNaServer()
+        {
+            try
+            {
+                klijent = new TcpClient("localhost", 20000);
+                tok = klijent.GetStream();
+                formater = new BinaryFormatter();
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+        }
+
+
+        public void kraj()
+        {
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.Kraj;
+            formater.Serialize(tok, transfer);
+        }
+
+        public PoreskiInspektor login(PoreskiInspektor p)
+        {
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.Login;
+            transfer.TransferObjekat = p;
+            formater.Serialize(tok, transfer);
+
+            transfer = formater.Deserialize(tok) as TransferKlasa;
+            return transfer.Rezultat as PoreskiInspektor;
+        }
+
+        public List<Vrsta> vratiSveVrste()
+        {
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.VratiSveVrste;
+            formater.Serialize(tok, transfer);
+
+            transfer = formater.Deserialize(tok) as TransferKlasa;
+            return transfer.Rezultat as List<Vrsta>;
+        }
+
+        public List<PoreskiObveznik> vratiSveObveznike()
+        {
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.VratiSveObveznike;
+            formater.Serialize(tok, transfer);
+
+            transfer = formater.Deserialize(tok) as TransferKlasa;
+            return transfer.Rezultat as List<PoreskiObveznik>;
+        }
+
+        public bool sacuvajPrijavu(PoreskaPrijava p)
+        {
+            TransferKlasa transfer = new TransferKlasa();
+            transfer.Operacija = Operacije.SacuvajPrijave;
+            transfer.TransferObjekat = p;
+            formater.Serialize(tok, transfer);
+
+            transfer = formater.Deserialize(tok) as TransferKlasa;
+            return (bool)transfer.Rezultat;
+        }
+    }
+}
