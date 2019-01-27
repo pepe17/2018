@@ -1,0 +1,535 @@
+//fizicko lice
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class FizickoLice:PoreskiObveznik
+    {
+        public override string ToString()
+        {
+            return imePrezime;
+        }
+
+        string imePrezime;
+        string jmbg;
+
+        public string ImePrezime
+        {
+            get
+            {
+                return imePrezime;
+            }
+
+            set
+            {
+                imePrezime = value;
+            }
+        }
+
+        public string Jmbg
+        {
+            get
+            {
+                return jmbg;
+            }
+
+            set
+            {
+                jmbg = value;
+            }
+        }
+    }
+}
+
+//klasa za server
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    public class KlasaZaServer
+    {
+        int id;
+        string naziv;
+        string tip;
+        int godina;
+        double dug;
+
+        public int Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+
+        public string Naziv
+        {
+            get
+            {
+                return naziv;
+            }
+
+            set
+            {
+                naziv = value;
+            }
+        }
+
+        public string Tip
+        {
+            get
+            {
+                return tip;
+            }
+
+            set
+            {
+                tip = value;
+            }
+        }
+
+        public int Godina
+        {
+            get
+            {
+                return godina;
+            }
+
+            set
+            {
+                godina = value;
+            }
+        }
+
+        public double Dug
+        {
+            get
+            {
+                return dug;
+            }
+
+            set
+            {
+                dug = value;
+            }
+        }
+    }
+}
+//poreska prijava
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class PoreskaPrijava
+    {
+        public PoreskaPrijava()
+        {
+            listaStavki = new BindingList<Domen.StavkaPrijave>();
+        }
+
+        int id;
+        int godina;
+        PoreskiObveznik obveznik;
+        PoreskiInspektor inspektor;
+        BindingList<StavkaPrijave> listaStavki;
+
+        public int Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+
+        public int Godina
+        {
+            get
+            {
+                return godina;
+            }
+
+            set
+            {
+                godina = value;
+            }
+        }
+
+        public PoreskiObveznik Obveznik
+        {
+            get
+            {
+                return obveznik;
+            }
+
+            set
+            {
+                obveznik = value;
+            }
+        }
+
+        public PoreskiInspektor Inspektor
+        {
+            get
+            {
+                return inspektor;
+            }
+
+            set
+            {
+                inspektor = value;
+            }
+        }
+
+        public BindingList<StavkaPrijave> ListaStavki
+        {
+            get
+            {
+                return listaStavki;
+            }
+
+            set
+            {
+                listaStavki = value;
+            }
+        }
+    }
+}
+//poreski inspektor
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class PoreskiInspektor
+    {
+        public override string ToString()
+        {
+            return ImePrezime;
+        }
+
+        int id;
+        string imePrezime;
+        string korisnickoIme;
+        string korisnickaSifra;
+
+        public int Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+
+        public string ImePrezime
+        {
+            get
+            {
+                return imePrezime;
+            }
+
+            set
+            {
+                imePrezime = value;
+            }
+        }
+
+        public string KorisnickoIme
+        {
+            get
+            {
+                return korisnickoIme;
+            }
+
+            set
+            {
+                korisnickoIme = value;
+            }
+        }
+
+        public string KorisnickaSifra
+        {
+            get
+            {
+                return korisnickaSifra;
+            }
+
+            set
+            {
+                korisnickaSifra = value;
+            }
+        }
+    }
+}
+// poreski obveznik
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class PoreskiObveznik
+    {
+        protected int id;
+
+        public int Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+    }
+}
+//pravno lice
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class PravnoLice:PoreskiObveznik
+    {
+        public override string ToString()
+        {
+            return naziv;
+        }
+
+        string naziv;
+        string pib;
+        string matBr;
+
+        public string Naziv
+        {
+            get
+            {
+                return naziv;
+            }
+
+            set
+            {
+                naziv = value;
+            }
+        }
+
+        public string Pib
+        {
+            get
+            {
+                return pib;
+            }
+
+            set
+            {
+                pib = value;
+            }
+        }
+
+        public string MatBr
+        {
+            get
+            {
+                return matBr;
+            }
+
+            set
+            {
+                matBr = value;
+            }
+        }
+    }
+}
+
+// stavka prijave
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class StavkaPrijave
+    {
+        int rBr;
+        DateTime datum;
+        double vrednost;
+        string napomena;
+        Vrsta vrsta;
+
+        public int RBr
+        {
+            get
+            {
+                return rBr;
+            }
+
+            set
+            {
+                rBr = value;
+            }
+        }
+
+        public DateTime Datum
+        {
+            get
+            {
+                return datum;
+            }
+
+            set
+            {
+                datum = value;
+            }
+        }
+
+        public double Vrednost
+        {
+            get
+            {
+                return vrednost;
+            }
+
+            set
+            {
+                vrednost = value;
+            }
+        }
+
+        public string Napomena
+        {
+            get
+            {
+                return napomena;
+            }
+
+            set
+            {
+                napomena = value;
+            }
+        }
+
+        public Vrsta Vrsta
+        {
+            get
+            {
+                return vrsta;
+            }
+
+            set
+            {
+                vrsta = value;
+            }
+        }
+    }
+}
+//vrsta
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Domen
+{
+    [Serializable]
+    public class Vrsta
+    {
+        public override string ToString()
+        {
+            return naziv;
+        }
+
+        int id;
+        string naziv;
+        double procenat;
+
+        public int Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+
+        public string Naziv
+        {
+            get
+            {
+                return naziv;
+            }
+
+            set
+            {
+                naziv = value;
+            }
+        }
+
+        public double Procenat
+        {
+            get
+            {
+                return procenat;
+            }
+
+            set
+            {
+                procenat = value;
+            }
+        }
+    }
+}
+
+
