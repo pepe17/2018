@@ -1,0 +1,254 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Domen;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace ServerKonzola
+{
+    public class Broker
+    {
+        SqlCommand komanda;
+        SqlConnection konekcija;
+        SqlTransaction transakcija;
+
+        void konektujSe()
+        {
+            konekcija = new SqlConnection(@"Data Source=DESKTOP-S2KSRJO\SQLEXPRESS;Initial Catalog=Predrok2018;Integrated Security=True");
+            komanda = konekcija.CreateCommand();
+        }
+
+        Broker()
+        {
+            konektujSe();
+        }
+
+        static Broker instanca;
+        public static Broker dajSesiju()
+        {
+            if (instanca == null) instanca = new Broker();
+            return instanca;
+        }
+
+
+        public PoreskiInspektor login(PoreskiInspektor p)
+        {
+            try
+            {
+                konekcija.Open();
+                komanda.CommandText = "Select * from PoreskiInspektor where KOrisnickoIme='"+p.KorisnickoIme+"' and Lozinka='"+p.KorisnickaSifra+"'";
+                SqlDataReader citac = komanda.ExecuteReader();
+                if (citac.Read())
+                {
+                    p.Id = citac.GetInt32(0);
+                    p.ImePrezime = citac.GetString(1);
+                    citac.Close();
+                    return p;
+                }
+                citac.Close();
+                return null;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally { if (konekcija != null) konekcija.Close(); }
+        }
+
+
+        public List<Vrsta> vratiSveVrste()
+        {
+            List<Vrsta> lista = new List<Vrsta>();
+            try
+            {
+                konekcija.Open();
+                komanda.CommandText = "Select * from Vrsta";
+                SqlDataReader citac = komanda.ExecuteReader();
+                while (citac.Read())
+                {
+                    Vrsta v = new Vrsta();
+                    v.Id = citac.GetInt32(0);
+                    v.Naziv = citac.GetString(1);
+                    v.Procenat = Convert.ToDouble(2);
+                    lista.Add(v);
+                }
+                citac.Close();
+                return lista;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally{ if (konekcija != null) konekcija.Close(); }
+        }
+
+
+        public List<PoreskiObveznik> vratiSveObveznike()
+        {
+            List<PoreskiObveznik> lista = new List<PoreskiObveznik>();
+            try
+            {
+                konekcija.Open();
+                komanda.CommandText = "Select * from FizickoLice";
+                SqlDataReader citac = komanda.ExecuteReader();
+                while (citac.Read())
+                {
+                    FizickoLice f = new FizickoLice();
+                    f.Id = citac.GetInt32(0);
+                    f.Jmbg = citac.GetString(1);
+                    f.ImePrezime = citac.GetString(2);
+                    lista.Add(f);
+                }
+                citac.Close();
+
+                komanda.CommandText = "Select * from PravnoLice";
+                citac = komanda.ExecuteReader();
+                while (citac.Read())
+                {
+                    PravnoLice f = new PravnoLice();
+                    f.Id = citac.GetInt32(0);
+                    f.Pib = citac.GetString(1);
+                    f.MatBr = citac.GetString(2);
+                    f.Naziv = citac.GetString(3);
+                    lista.Add(f);
+                }
+                citac.Close();
+
+
+                return lista;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally { if (konekcija != null) konekcija.Close(); }
+        }
+
+
+        public int vratiSifruPrijave()
+        {
+            try
+            {
+                komanda.CommandText = "Select max(ID) from PoreskaPrijava";
+                try
+                {
+                    return Convert.ToInt32(komanda.ExecuteScalar()) + 1;
+                }
+                catch (Exception)
+                {
+
+                    return 1;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+
+        public bool sacuvajPrijavu(PoreskaPrijava p)
+        {
+            try
+            {
+                konekcija.Open();
+                transakcija = konekcija.BeginTransaction();
+                komanda= new SqlCommand("",konekcija,transakcija);
+
+                p.Id = vratiSifruPrijave();
+                komanda.CommandText = "Insert into PoreskaPrijava values ("+p.Id+","+p.Godina+","+p.Obveznik.Id+","+p.Inspektor.Id+")";
+                komanda.ExecuteNonQuery();
+
+                foreach (StavkaPrijave sp in p.ListaStavki)
+                {
+                    komanda.CommandText = "Insert into StavkaPrijave values("+p.Id+","+sp.RBr+",'"+sp.Datum.ToString("yyyy-MM-dd")+"',"+sp.Vrednost+",'"+sp.Napomena+"',"+sp.Vrsta.Id+" )";
+                    komanda.ExecuteNonQuery();
+                }
+                transakcija.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                transakcija.Rollback();
+                return false;
+            }
+            finally { if (konekcija != null) konekcija.Close(); }
+        }
+
+
+        public List<KlasaZaServer> vratiSveZaServer(string filter)
+        {
+            List<KlasaZaServer> lista = new List<KlasaZaServer>();
+            try
+            {
+                konekcija.Open();
+
+                if (filter == "fizicko" || filter=="")
+                {
+
+                    komanda.CommandText = "Select f.ID, f.ImePrezime, p.Godina, sum(sp.Vrednost*(v.Procenat/100)) as Dug from FizickoLice f inner join PoreskaPrijava p on f.ID=p.ObveznikID inner join StavkaPrijave sp on p.ID=sp.IDPrijave inner join Vrsta v on sp.VrstaID=v.ID where Godina="+DateTime.Now.Year+ " group by f.ID, f.ImePrezime, p.Godina order by Dug desc";
+                    SqlDataReader citac = komanda.ExecuteReader();
+                    while (citac.Read())
+                    {
+                        KlasaZaServer k = new KlasaZaServer();
+                        k.Id = citac.GetInt32(0);
+                        k.Naziv = citac.GetString(1);
+                        k.Godina = citac.GetInt32(2);
+                        try
+                        {
+                            k.Dug = Convert.ToDouble(citac.GetValue(3));
+                        }
+                        catch (Exception)
+                        {
+
+                           
+                        }
+                        k.Tip = "Fizicko";
+                        lista.Add(k);
+                    }
+                    citac.Close();
+                }
+                if (filter == "pravno"|| filter=="")
+                {
+                    komanda.CommandText = "Select f.ID, f.Naziv, p.Godina, sum(sp.Vrednost*(v.Procenat/100)) from PravnoLice f inner join PoreskaPrijava p on f.ID=p.ObveznikID inner join StavkaPrijave sp on p.ID=sp.IDPrijave inner join Vrsta v on sp.VrstaID=v.ID where Godina=" + DateTime.Now.Year + " group by f.ID, f.Naziv, p.Godina order by sum(sp.Vrednost*(v.Procenat/100)) desc";
+                    SqlDataReader citac = komanda.ExecuteReader();
+                    while (citac.Read())
+                    {
+                        KlasaZaServer k = new KlasaZaServer();
+                        k.Id = citac.GetInt32(0);
+                        k.Naziv = citac.GetString(1);
+                        k.Godina = citac.GetInt32(2);
+                        try
+                        {
+                            k.Dug = Convert.ToDouble(citac.GetValue(3));
+                        }
+                        catch (Exception)
+                        {
+
+
+                        }
+                        k.Tip = "Pravno";
+                        lista.Add(k);
+
+                    }
+                }
+                return lista;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            finally { if (konekcija != null) konekcija.Close(); }
+        }
+
+    }
+}
