@@ -1,0 +1,117 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Domen;
+
+namespace Klijent
+{
+    public partial class UnosStavke : Form
+    {
+        private Komunikacija k;
+        private PoreskiInspektor p;
+        private PoreskaPrijava prijava;
+        private Vrsta v;
+
+        public UnosStavke()
+        {
+            InitializeComponent();
+        }
+
+        public UnosStavke(PoreskiInspektor p, Komunikacija k, PoreskaPrijava prijava, Vrsta v)
+        {
+            InitializeComponent();
+            this.p = p;
+            this.k = k;
+            this.prijava = prijava;
+            this.v = v;
+        }
+
+        private void Dodaj_Click(object sender, EventArgs e)
+        {
+            StavkaPrijave sp = new StavkaPrijave();
+            sp.RBr = prijava.ListaStavki.Count + 1;
+            sp.Vrsta = v;
+            try
+            {
+                sp.Datum = Convert.ToDateTime(txtDatum.Text);
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("Ne valja datum!");
+                return;
+            }
+
+            sp.Napomena = txtNapomena.Text;
+
+            if (sp.Napomena == "")
+            {
+                MessageBox.Show("Fali napomena!");
+                return;
+            }
+
+            try
+            {
+                sp.Vrednost = Convert.ToDouble(txtVrednost.Text);
+            }
+            catch (Exception)
+            {
+
+                MessageBox.Show("Losa vrednost!");
+                return;
+
+            }
+
+            if (sp.Vrednost <= 0)
+            {
+                MessageBox.Show("Ne valja vrednost!");
+                return;
+            }
+
+            prijava.ListaStavki.Add(sp);
+          
+            this.Close();
+        }
+
+        private void UnosStavke_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtDatum_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtNapomena_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtVrednost_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
